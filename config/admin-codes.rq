@@ -1,0 +1,40 @@
+PREFIX apf: <http://jena.apache.org/ARQ/property#>
+PREFIX fx: <http://sparql.xyz/facade-x/ns/>
+PREFIX gn: <https://www.geonames.org/ontology#>
+PREFIX xyz: <http://sparql.xyz/facade-x/data/>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wgs84_pos: <http://www.w3.org/2003/01/geo/wgs84_pos#>
+PREFIX rdfs: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+
+CONSTRUCT {
+    ?adm1Uri xyz:admin1Code ?adm1 .
+    ?adm2Uri xyz:admin2Code ?adm2 .
+}
+WHERE {
+    {
+        SERVICE <x-sparql-anything:> {
+            fx:properties fx:location "data/admin1-codes.csv" ;
+                fx:csv.delimiter "\t" ;
+                fx:csv.headers true ;
+            .
+            [
+                xyz:admin1code ?adm1 ;
+                xyz:geonameId ?adm1Id ;
+            ]
+            BIND(URI(CONCAT("https://sws.geonames.org/", ?adm1Id, "/")) as ?adm1Uri)
+        }
+    }
+    UNION {
+        SERVICE <x-sparql-anything:> {
+            fx:properties fx:location "data/admin2-codes.csv" ;
+                fx:csv.delimiter "\t" ;
+                fx:csv.headers true ;
+            .
+            [
+                xyz:admin2code ?adm2 ;
+                xyz:geonameId ?adm2Id ;
+            ]
+            BIND(URI(CONCAT("https://sws.geonames.org/", ?adm2Id, "/")) as ?adm2Uri)
+        }
+    }
+}

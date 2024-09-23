@@ -6,7 +6,9 @@ Simple download and transform scripts to download and convert geonames dumps int
 
 ### RML
 
-The text to RDF transformation is done using the RML mapper. This requires a java runtime environment (openjdk or other). The RMLmapper can be downloaded from the the [RML repo](https://github.com/RMLio/rmlmapper-java). The scripts assume that the `rmlmapper.jar` is available in the `./bin` directory.
+The text to RDF transformation is done using [SPARQL Anything](https://github.com/SPARQL-Anything/sparql.anything).
+This requires a Java runtime environment.
+You can download the SPARQL Anything JAR [here](https://github.com/SPARQL-Anything/sparql.anything/releases).
 
 ### Fuseki
 
@@ -27,10 +29,10 @@ See the [Geonames download website](https://download.geonames.org/export/dump/) 
 Run the scripts in the following order:
 
 1. **Download**
-Run the `geonames-download.sh` to download the data. Currently only the NL and BE country data is downloaded. After downloading some basic cleaning is done to prevent problems in the mapping proces. The download files are place in the `./data` directory.
+Run the `download.sh` to download the data. Currently only the NL and BE country data is downloaded. After downloading some basic cleaning is done to prevent problems in the mapping proces. The download files are place in the `./data` directory.
 
 2. **Mapping**
-   Run the `map.sh` to convert the textfiles to RDF. The resulting ntriples files is placed in `./fuseki/databases/`. The mapping can take some time to finish, be patient!
+   Run the `map.sh` to convert the text files to RDF. This produces a `data/geonames.ttl` file. 
 
 3. **Expose the data**
    Run the `server.sh` to start the server and expose the SPARQL-endpoint on <http://localhost:3030/geonames/sparql>.
