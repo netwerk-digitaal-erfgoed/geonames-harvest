@@ -1,0 +1,62 @@
+PREFIX apf: <http://jena.apache.org/ARQ/property#>
+PREFIX fx: <http://sparql.xyz/facade-x/ns/>
+PREFIX gn: <https://www.geonames.org/ontology#>
+PREFIX xyz: <http://sparql.xyz/facade-x/data/>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX wgs84_pos: <http://www.w3.org/2003/01/geo/wgs84_pos#>
+PREFIX rdfs: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+
+# Some measurements. On my local machine, so not super representative.
+#
+# 1M records    3m36.655s   ~400 MB RAM
+# 13M records   ?           ??
+#
+CONSTRUCT {
+    ?uri
+        a gn:Feature ;
+        gn:name ?name ;
+        gn:alternateName ?alternateName ;
+        gn:countryCode ?countryCode ;
+        gn:featureClass ?featureClass ;
+        gn:featureCode ?featureCode ;
+        gn:parentADM1 ?parentAdm1 ;
+        gn:parentADM2 ?parentAdm2 ;
+        wgs84_pos:lat ?latitudeFloat ;
+        wgs84_pos:long ?longitudeFloat ;
+}
+WHERE {
+    SERVICE <x-sparql-anything:> {
+        fx:properties
+            fx:location "data/geonamesplus.csv" ;
+            fx:ondisk "/tmp/sparql-anything-geonames" ; # Ondisk storage is slower but required to prevent OOM.
+            fx:null-string "" ; # Skip empty alternate names.
+            fx:csv.delimiter "\t" ;
+            fx:csv.headers true ;
+        .
+
+        ?s xyz:geonameid ?id ;
+            xyz:name ?name ;
+            xyz:country%20code ?countryCode ;
+            xyz:feature%20class ?featureClassString ;
+            xyz:feature%20code ?featureCodeString ;
+            xyz:adm1 ?adm1 ;
+            xyz:adm2 ?adm2 ; # Not all places have a parentAdm2, but we use a special ‘NONE’ value so we can join non-OPTIONALly.
+            xyz:latitude ?latitude ;
+            xyz:longitude ?longitude ;
+        .
+
+        OPTIONAL {
+            ?s xyz:alternatenames ?alternateNameString .
+            ?alternateName apf:strSplit (?alternateNameString ",") .
+        }
+
+        BIND(URI(CONCAT("https://sws.geonames.org/", ?id, "/")) as ?uri)
+        BIND(URI(CONCAT("https://www.geonames.org/ontology#", ?featureClassString)) as ?featureClass)
+        BIND(URI(CONCAT("https://www.geonames.org/ontology#", ?featureClassString, ".", ?featureCodeString)) as ?featureCode)
+        BIND(xsd:float(?latitude) AS ?latitudeFloat)
+        BIND(xsd:float(?longitude) AS ?longitudeFloat)
+    }
+
+    OPTIONAL { ?parentAdm1 xyz:admin1Code ?adm1 }
+    OPTIONAL { ?parentAdm2 xyz:admin2Code ?adm2 }
+}
